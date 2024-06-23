@@ -1,4 +1,3 @@
-import React from "react";
 import { useDispatch } from "react-redux";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
@@ -7,7 +6,7 @@ import { TextField } from "formik-mui";
 import { addTask, editTask } from "../store/taskSlice";
 import { v4 as uuidv4 } from "uuid";
 
-interface TaskFormProps {
+interface ITaskFormProps {
   initialValues: {
     id?: string;
     title: string;
@@ -24,18 +23,30 @@ const TaskSchema = Yup.object().shape({
   deadline: Yup.date(),
 });
 
-const TaskForm: React.FC<TaskFormProps> = ({
+const TaskForm = ({
   initialValues,
   editMode = false,
   onClose,
-}) => {
+}: ITaskFormProps) => {
   const dispatch = useDispatch();
 
   const handleSubmit = (values: any) => {
+    const currentDate = new Date();
+    const deadlineDate = new Date(values.deadline);
+
+    // Check if deadline is in the past
+    const isOverdue = deadlineDate < currentDate;
+
+    const taskData = {
+      ...values,
+      id: values.id || uuidv4(), // Assign a new id if not editing
+      status: isOverdue ? "Overdue" : "Pending",
+    };
+
     if (editMode) {
-      dispatch(editTask(values));
+      dispatch(editTask(taskData));
     } else {
-      dispatch(addTask({ ...values, id: uuidv4(), status: "Pending" }));
+      dispatch(addTask(taskData));
     }
     onClose();
   };

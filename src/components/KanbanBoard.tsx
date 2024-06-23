@@ -1,34 +1,21 @@
-// src/components/KanbanBoard.tsx
-
-import React from "react";
 import { useSelector } from "react-redux";
-
 import Column from "./Column";
-import { ITask } from "../store/taskSlice";
 import { RootState } from "../store/store";
+import Trash from "./Trash";
 
-interface IColumns {
-  Pending: ITask[];
-  Completed: ITask[];
-  Overdue: ITask[];
-  Removed: ITask[];
-}
-
-const KanbanBoard: React.FC = () => {
+const KanbanBoard = () => {
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
 
-  const columns = {
-    Pending: tasks.filter((task: ITask) => task.status === "Pending"),
-    Completed: tasks.filter((task: ITask) => task.status === "Completed"),
-    Overdue: tasks.filter((task: ITask) => task.status === "Overdue"),
-    Removed: tasks.filter((task: ITask) => task.status === "Removed"),
+  const getTasksByStatus = (status: string) => {
+    return tasks.filter((task) => task.status === status);
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "space-around" }}>
-      {Object.keys(columns).map((key) => (
-        <Column key={key} title={key} tasks={columns[key as keyof IColumns]} />
-      ))}
+    <div className="flex gap-4 p-4 w-full">
+      <Column title="Pending" tasks={getTasksByStatus("Pending")} />
+      <Column title="Completed" tasks={getTasksByStatus("Completed")} />
+      <Column title="Overdue" tasks={getTasksByStatus("Overdue")} />
+      <Trash />
     </div>
   );
 };

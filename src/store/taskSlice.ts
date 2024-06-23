@@ -10,10 +10,12 @@ export interface ITask {
 
 export interface ITaskState {
   tasks: ITask[];
+  removedTasks: ITask[];
 }
 
 const initialState: ITaskState = {
   tasks: [],
+  removedTasks: [],
 };
 
 const taskSlice = createSlice({
@@ -34,7 +36,19 @@ const taskSlice = createSlice({
     removeTask: (state, action: PayloadAction<string>) => {
       const index = state.tasks.findIndex((task) => task.id === action.payload);
       if (index !== -1) {
-        state.tasks[index].status = "Removed";
+        const [removedTask] = state.tasks.splice(index, 1);
+        removedTask.status = "Removed";
+        state.removedTasks.push(removedTask);
+      }
+    },
+    restoreTask: (state, action: PayloadAction<string>) => {
+      const index = state.removedTasks.findIndex(
+        (task) => task.id === action.payload
+      );
+      if (index !== -1) {
+        const [restoredTask] = state.removedTasks.splice(index, 1);
+        restoredTask.status = "Pending"; // or any other status you prefer
+        state.tasks.push(restoredTask);
       }
     },
     completeTask: (state, action: PayloadAction<string>) => {
@@ -43,6 +57,13 @@ const taskSlice = createSlice({
         state.tasks[index].status = "Completed";
       }
     },
+    reopenTask: (state, action: PayloadAction<string>) => {
+      const index = state.tasks.findIndex((task) => task.id === action.payload);
+      if (index !== -1 && state.tasks[index].status === "Completed") {
+        state.tasks[index].status = "Pending";
+      }
+    },
+
     checkOverdueTasks: (state) => {
       const now = new Date().toISOString();
       state.tasks.forEach((task) => {
@@ -62,7 +83,9 @@ export const {
   addTask,
   editTask,
   removeTask,
+  restoreTask,
   completeTask,
+  reopenTask,
   checkOverdueTasks,
 } = taskSlice.actions;
 
